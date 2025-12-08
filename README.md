@@ -22,6 +22,8 @@ I try to be consistent with the ordering of these variables throughout.
 
 -time_dep/Actr_evol_{amp}.dat: stores the relevant, time-dependent data for each simulation with perturbation with real amplitude amp
 
+-time_dep/1d/: contains different 1d dimensional quantities. For now, the radii, real and imaginary part of csf, in  the form of a matrix. each row of the matrix contains the slice time, the lenght of the relevant array, and the quantity array. Be careful with the size of the folder!
+
 There is also conv.dat only written to as the result of a convergence test (currently only fully implemented on the BS solver) and BosonStars.dat written to to store the results of model cycling, both commented out in main by default.
 
 I added an output handler in output_handler, so that the programme writes all data inside an output folder, which can then be renamed accordingly. If the programme runs again, the output folder is moved to output_prev, to avoid unwanted erasures.
