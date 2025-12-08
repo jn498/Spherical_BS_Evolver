@@ -7,6 +7,8 @@
 #include<string>
 #include <fstream>
 #include <quadmath.h>
+#include "output_handler.h"
+
 
 
 //holds field amplitude, conformal factor, their derivative, and the lapse
@@ -120,7 +122,7 @@ class BosonStar
         void rk4_solve (const long double freq);
         void read_parameters(bool quiet = 0);
         void read_thinshell();
-        void write_field(std::string filename="BSdata.dat");
+        void write_field(std::string filename= output_folder_name + "/BSdata.dat");
         void convergence_test(long double freq = 0.);
         void double_resolution();
         bool solve(bool quiet = 0);

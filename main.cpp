@@ -9,6 +9,7 @@
 #include "EvolutionVariables.h"
 #include "LinearPerturbation.h"
 #include "mathutils.h"
+#include "output_handler.h"
 #include <iomanip>
 
 
@@ -20,7 +21,13 @@ void compute_linear_perturbation(BosonStar& boson_star, double A0, double dA, do
 
 int main()
 {
-    //construct initial BS solution
+ 
+    //create output folder
+    create_output_folder(output_folder_name);
+    // create time_dep data
+    create_output_folder(output_folder_name + "/" + time_dep_data_folder_name);
+
+   //construct initial BS solution
     BosonStar boson_star{};
     boson_star.read_parameters();
 
@@ -34,6 +41,7 @@ int main()
 
     if (boson_star.gaussian_start)
         gauss_initialize(boson_star);
+
 
     //main run: either cycles models/ radial oscillation freqs/ dynamical evolution depending on param choices
     if (boson_star.cycle_only)

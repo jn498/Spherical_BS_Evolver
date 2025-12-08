@@ -721,7 +721,7 @@ void slice_convergence_test (BSSNSlice& sl, BSSNSlice& sm, BSSNSlice& sh)
     }
 
     //write to file
-    std::ofstream conv_file{ "conv.dat" };
+    std::ofstream conv_file{ output_folder_name + "/conv.dat" };
 
     // If we couldn't open the output file stream for writing
     if (!conv_file)
@@ -1458,7 +1458,7 @@ void Spacetime:: write_diagnostics()
     vector<double>& aux_test = rho;
 
     double dr = R / ((double)length - 1.0);
-    std::ofstream data_file{"Diagnostics.dat"};
+    std::ofstream data_file{output_folder_name + "/Diagnostics.dat"};
 
      if (!data_file)
     {
@@ -1980,7 +1980,7 @@ void Spacetime::initialize(BosonStar& boson_star, bool skip_read)
     double charge0 = slice_charge(&slices[0]);
     M = mass0;
 
-    std::ofstream dynamical_file{"dynamical_constants.dat"};
+    std::ofstream dynamical_file{output_folder_name + "/dynamical_constants.dat"};
     dynamical_file << mass0 << "    " << charge0 << "    " << mass0 - mu * charge0;
 
     if (!run_quietly)
@@ -2001,8 +2001,27 @@ void Spacetime::evolve()
     int num_timesteps = ceil(stop_time / dt);
     int last_checkpoint_time = 0;
 
+    //Write central field evolution in output/Actr_evol_amp
+    std::ostringstream  oss_actr_evol_file_name;
+    oss_actr_evol_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/Actr_evol_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+    std::string actr_evol_file_name = oss_actr_evol_file_name.str();
+    std::ofstream actr_evol_file{actr_evol_file_name};
+    if (!actr_evol_file)
+    {
+        std::cerr << "Actr_evol_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+        exit(1);
+    }
+    actr_evol_file << "#" << std::setw(20) << "time "
+                   << std::setw(21) << "A_ctr "
+                   << std::setw(21) << "phi_re "
+                   << std::setw(21) << "phi_im "
+                   << std::setw(21) << "ah_radius "
+                   << std::setw(21) << "alpha "
+                   << std::setw(21) << "ricci_4 "
+                   << std::endl;
+
     //write constraint norms at each timestep to file
-    std::ofstream constraints_file{"constraint_norms.dat"};
+    std::ofstream constraints_file{output_folder_name + "/constraint_norms.dat"};
     if (!constraints_file)
     {
         std::cerr << "constraint_norms.dat could not be opened for writing!\n";
@@ -2041,7 +2060,18 @@ void Spacetime::evolve()
         double Ap0 = sqrt (pow(slices[n].states2[0].csf.phi_re,2) + pow(slices[n].states2[0].csf.phi_im,2));
         double Ap1 = sqrt (pow(slices[n].states2[1].csf.phi_re,2) + pow(slices[n].states2[1].csf.phi_im,2));
         double A_ctr =  (cell_centered) ? (Ap0- 0.5 * dr * (Ap1 - Ap0)) : Ap0; //just linearly extrapolate to r = 0 when cell-centered
-        double ricci_4 = (critical_study ? ricci_4_ctr():0.0);
+        
+	// do the same thing for A_re, A_im
+        double csf_phi_re0 = slices[n].states2[0].csf.phi_re;
+        double csf_phi_re1 = slices[n].states2[1].csf.phi_re;
+        double csf_phi_re = (cell_centered) ? (csf_phi_re0 - 0.5 * dr * (csf_phi_re1 - csf_phi_re0)) : csf_phi_re0;
+
+        double csf_phi_im0 = slices[n].states2[0].csf.phi_im;
+        double csf_phi_im1 = slices[n].states2[1].csf.phi_im;
+        double csf_phi_im = (cell_centered) ? (csf_phi_im0 - 0.5 * dr * (csf_phi_im1 - csf_phi_im0)) : csf_phi_im0;
+
+	//ricci scalar
+	double ricci_4 = (critical_study ? ricci_4_ctr():0.0);
 
         if (critical_study && ricci_4 > ricci_4_ctr_max)
             ricci_4_ctr_max = ricci_4;
@@ -2054,7 +2084,17 @@ void Spacetime::evolve()
             << A_ctr << "   "  << ah_radius << "   " <<  M << "   "  << slice_charge(current_slice_ptr)
             << "   " << dtK_L2 << "   " << omega_approx << "   " << slices[n].states2[0].bssn.alpha <<
             "   " << E_phi << "   " << E_psi << "   " << ricci_4 << endl;
-        }
+        
+	    actr_evol_file << std::fixed << std::setprecision(10)
+                   << std::setw(20) << start_time + dt * time_step << " "
+                   << std::setw(20) << A_ctr << " "
+                   << std::setw(20) << csf_phi_re << " "
+                   << std::setw(20) << csf_phi_im << " "
+                   << std::setw(20) << ah_radius << " "
+                   << std::setw(20) << slices[n].states2[0].bssn.alpha << " "
+                   << std::setw(20) << ricci_4
+                   << endl;
+	}
 
         slices[n + 1].states2.resize(n_gridpoints);
         slices[n + 1].R = R;
@@ -2176,8 +2216,8 @@ void Spacetime::evolve()
 // Will repeatedly initialize and evolve, restoring tuning_param after initialize in (likely) case it's a Spacetime member overwritten by params.
 void Spacetime::tune_to_critical(double& tuning_param, double hi_guess, double lo_guess, BosonStar* bs)
 {
-    std::ofstream subcritical_file{"subcritical.dat"};
-    std::ofstream supercritical_file{"supercritical.dat"};
+    std::ofstream subcritical_file{output_folder_name + "/subcritical.dat"};
+    std::ofstream supercritical_file{output_folder_name + "/supercritical.dat"};
 
     subcritical_file << "#tuning_param   critical_time     ricci_4_max" << endl;
     supercritical_file << "#tuning_param   critical_time" << endl;

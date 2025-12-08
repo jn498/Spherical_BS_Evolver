@@ -8,6 +8,8 @@
 #include "BosonStar.h"
 #include "ComplexScalarField.h" // for CSF in composite State
 #include "RealScalarField.h"   // for RSF in composite State
+#include "output_handler.h"
+
 
 class ComplexScalarField; // forward declaration for friendship
 
@@ -76,7 +78,7 @@ class BSSNSlice
 
         void read_BS_data(BosonStar& boson_star,int BS_resolution_factor = 1., bool isotropic = 1, bool cell_centered = 0);
         void read_checkpoint(int time, int n_gridpoints);
-        void write_slice( std::string file_name = "SliceData.dat");
+        void write_slice( std::string file_name = output_folder_name + "/SliceData.dat");
 
         int get_refinement_level(int j, std::vector<int>& refinement_points);
         std::vector<bool> active_points; //for now just give each slice a copy of the active_points array; can probably be optimized
@@ -108,7 +110,7 @@ class Spacetime
         void initialize(BosonStar& boson_star, bool skip_read = false);// If skip_read is true, do not read BSParams.par again (use existing in-memory settings).
         void write_diagnostics();
         void evolve();
-        void write_current_slice( std::string file_name = "SliceData.dat");
+        void write_current_slice( std::string file_name = output_folder_name +  "/SliceData.dat");
         //void read_isotropic_data();
 
         void halve_resolution();

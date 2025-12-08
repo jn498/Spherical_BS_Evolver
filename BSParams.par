@@ -2,12 +2,12 @@
 D = 4
 mu = 1.0
 lambda = 0
-solitonic = 1 #if false will use mini BS potential
+solitonic = 0 #if false will use mini BS potential
 G = 1.0 
 sigma = 0.2
 eigen = 0 #0 for ground state BS
 alpha_central = 0.5 #starting central lapse, will be rescaled
-A_central = 0.17
+A_central = 0.01
 frequency_guess = 1.8
 freq_epsilon = 1e-19
 isotropic = 1
@@ -34,13 +34,13 @@ refinement_points = -1 3200 #after these points, effective resolution will be ha
 
 #Massless real scalar field params: [0.01322275631129742, 0.01322275638580322]
 add_real_field = 1 #whether to add a real SF before evolution
-real_amp = 0.009570312500000001
+real_amp = 0.2822247700762999
 real_sigma = 5.0
 real_center = 0.0
 
 #params for critical threshold studies
 do_ah_search = 1
-critical_study = 1
+critical_study = 0
 hi_guess = 0.4
 lo_guess = 0.005
 critical_eps = 1e-12

@@ -2,6 +2,7 @@
 #define COMPLEX_SCALAR_FIELD_H
 
 #include <cstddef>
+#include "output_handler.h"
 
 // Forward declarations to avoid heavy includes in this header
 struct BSSNState;   // defined in EvolutionVariables.h

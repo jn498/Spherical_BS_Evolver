@@ -826,7 +826,7 @@ void BosonStar::fill_isotropic_arrays()
 void BosonStar::write_isotropic()
 {
 
-    std::ofstream data_file{ "isotropic.dat" };
+    std::ofstream data_file{ output_folder_name +  "/isotropic.dat" };
     double dr = R / (n_gridpoints - 1);
 
     // If we couldn't open the output file stream for writing
