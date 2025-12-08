@@ -1541,8 +1541,9 @@ void Spacetime::read_parameters(bool quiet)
         fill_parameter(current_line, "sub_min_time = ", sub_min_time, quiet);
         fill_parameter(current_line, "subcritical_time = ", subcritical_time, quiet);
         fill_parameter(current_line, "do_ah_search = ", do_ah_search, quiet);
-
-        fill_param_array(current_line, "refinement_points = ", refinement_points, quiet);
+        fill_parameter(current_line, "do_1d_output = ", do_1d_output, quiet);
+       
+       	fill_param_array(current_line, "refinement_points = ", refinement_points, quiet);
 
     }
 
@@ -2020,6 +2021,59 @@ void Spacetime::evolve()
                    << std::setw(21) << "ricci_4 "
                    << std::endl;
 
+    // create 1D output files
+    std::ofstream radii_file;
+    std::ofstream phi_re_file;
+    std::ofstream phi_im_file;
+    if (do_1d_output)
+    { 
+	    // radii 
+	    std::ostringstream  oss_1d_radii_file_name;
+	    oss_1d_radii_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/radii_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+	    std::string radii_file_name = oss_1d_radii_file_name.str();
+	    radii_file.open(radii_file_name);
+	    if (!radii_file)
+	    {
+		std::cerr << "radii_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+		exit(1);
+	    }
+	    radii_file << "#" << std::setw(20) << "time "
+		    << std::setw(21) << "numb. of points "
+		    << std::setw(21) << "radial value r= "
+		    << endl;
+
+	    // phi_re
+	    std::ostringstream  oss_1d_phi_re_file_name;
+	    oss_1d_phi_re_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/phi_re_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+	    std::string phi_re_file_name = oss_1d_phi_re_file_name.str();
+	    phi_re_file.open(phi_re_file_name);
+	    if (!phi_re_file)
+	    {
+		std::cerr << "phi_re_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+		exit(1);
+	    }
+	    phi_re_file << "#" << std::setw(20) << "time "
+		    << std::setw(21) << "numb. of points "
+		    << std::setw(21) << "radial value of csf phi_re(r)= "
+		    << endl;
+
+	    // phi_im
+	    std::ostringstream  oss_1d_phi_im_file_name;
+	    oss_1d_phi_im_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/phi_im_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+	    std::string phi_im_file_name = oss_1d_phi_im_file_name.str();
+	    phi_im_file.open(phi_im_file_name);
+	    if (!phi_im_file)
+	    {
+		std::cerr << "phi_im_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+		exit(1);
+	    }
+	    phi_im_file << "#" << std::setw(20) << "time "
+		    << std::setw(21) << "numb. of points "
+		    << std::setw(21) << "radial value of phi_im(r)= "
+		    << endl;
+    }
+
+
     //write constraint norms at each timestep to file
     std::ofstream constraints_file{output_folder_name + "/constraint_norms.dat"};
     if (!constraints_file)
@@ -2094,7 +2148,35 @@ void Spacetime::evolve()
                    << std::setw(20) << slices[n].states2[0].bssn.alpha << " "
                    << std::setw(20) << ricci_4
                    << endl;
-	}
+
+	    //write 1_D relevant data (not too much...)
+	    if (do_1d_output)
+ 	    {
+		    radii_file << std::fixed << std::setprecision(16)
+			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << slices[n].states2.size() << " ";
+		    phi_re_file << std::fixed << std::setprecision(16)
+			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << slices[n].states2.size() << " ";
+		    phi_im_file << std::fixed << std::setprecision(16)
+			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << slices[n].states2.size() << " ";
+        
+		    for (int j=0; j < (int) slices[n].states2.size(); j++)
+		    {
+			radii_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << (j) * dr << " ";
+			phi_re_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].csf.phi_re << " ";
+			phi_im_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].csf.phi_im << " ";
+		    }
+		    radii_file << endl;
+		    phi_re_file << endl;
+		    phi_im_file << endl;
+	     }
+        }
+
 
         slices[n + 1].states2.resize(n_gridpoints);
         slices[n + 1].R = R;

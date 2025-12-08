@@ -338,6 +338,8 @@ class Spacetime
         double d_zz(bssn_var var, int index);
 
         double test_ctr;
+
+	double do_1d_output; //flag to enable/disable 1d output (r, phi_re(r), phi_im(r) for each time slice)
 };
 
 

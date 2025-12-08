@@ -24,8 +24,8 @@ enforced_freq = 0.9
 
 #grid params
 R = 200
-n_gridpoints = 2000
-courant_factor = 0.4
+n_gridpoints = 3000
+courant_factor = 0.25
 stop_time = 5000
 cell_centered = 0
 BS_resolution_factor = 2 #raise BS resolution in ID solver by this factor
@@ -85,6 +85,10 @@ thinshell_res_fac = 1
 
 uniform_data = 1 #if true (and read_thinshell is true) will expect data smoothed + interpolated onto uniform grid via smooth_and_interp.py
 cutoff_frac = 0.75 
+
+
+# toggle 1d output for each time slice (R, Phi_re, Phi_im)
+do_1d_output = 1
 
 #Linear Perturbation params
 pert_only = 0 #toggles computing linear perturbation (1) / dynamical evolution (0)

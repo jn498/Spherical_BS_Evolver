@@ -26,6 +26,8 @@ int main()
     create_output_folder(output_folder_name);
     // create time_dep data
     create_output_folder(output_folder_name + "/" + time_dep_data_folder_name);
+    // create 1d output folder
+    create_output_folder(output_folder_name + "/" + time_dep_data_folder_name + "/1d");
 
    //construct initial BS solution
     BosonStar boson_star{};
