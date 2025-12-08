@@ -20,8 +20,11 @@ I try to be consistent with the ordering of these variables throughout.
 
 -constraint_norms.dat: written to every write_CN_interval timesteps during evolve(); stores L^2 norm of Ham + Mom over time, then central values of chi + field amplitude, then central energy density.
 
+-time_dep/Actr_evol_{amp}.dat: stores the relevant, time-dependent data for each simulation with perturbation with real amplitude amp
+
 There is also conv.dat only written to as the result of a convergence test (currently only fully implemented on the BS solver) and BosonStars.dat written to to store the results of model cycling, both commented out in main by default.
 
+I added an output handler in output_handler, so that the programme writes all data inside an output folder, which can then be renamed accordingly. If the programme runs again, the output folder is moved to output_prev, to avoid unwanted erasures.
 ###BASIC OVERVIEW OF STRUCTURE###
 The above should be enough to use the code in principle, but here's a brief overview of what it's doing under the hood...
 
