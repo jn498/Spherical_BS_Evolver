@@ -1542,8 +1542,11 @@ void Spacetime::read_parameters(bool quiet)
         fill_parameter(current_line, "subcritical_time = ", subcritical_time, quiet);
         fill_parameter(current_line, "do_ah_search = ", do_ah_search, quiet);
         fill_parameter(current_line, "do_1d_output = ", do_1d_output, quiet);
-       
-       	fill_param_array(current_line, "refinement_points = ", refinement_points, quiet);
+        fill_parameter(current_line, "do_t_ref = ", do_t_ref, quiet);
+        fill_parameter(current_line, "t_refinement = ", t_refinement, quiet);
+        fill_parameter(current_line, "ref_factor = ", ref_factor, quiet);
+       	
+	fill_param_array(current_line, "refinement_points = ", refinement_points, quiet);
 
     }
 
@@ -1907,8 +1910,17 @@ void Spacetime::initialize(BosonStar& boson_star, bool skip_read)
 
     dr = R / (n_gridpoints - 1.0);
     dt = courant_factor * dr;
-    int num_timesteps = ceil(stop_time / dt);
-
+    
+    //int num_timesteps = ceil(stop_time / dt);
+    int num_timesteps;
+    // second layer of refinement -> increase resolution in t after a certain time
+    if (do_t_ref) {
+	    int num_timesteps_ref = ceil(t_refinement / dt);
+	    num_timesteps = ceil( (stop_time - num_timesteps_ref*dt)/dt/ref_factor);
+    } else {
+	    num_timesteps = ceil(stop_time / dt);
+    }
+    
     slices.resize(std::min(num_timesteps + 1, max_stored_slices));
     slices[0].active_points = active_points;
     slices[0].refinement_points = refinement_points;
@@ -1999,7 +2011,16 @@ void Spacetime::evolve()
     if (!run_quietly)
         cout << "dr = " << dr << ", dt = " << dt <<  "   " << endl;
 
-    int num_timesteps = ceil(stop_time / dt);
+    int num_timesteps;
+    int num_timesteps_ref;
+    // second layer of refinement -> increase resolution in t after a certain time
+    if (do_t_ref) {
+	    num_timesteps_ref = ceil(t_refinement / dt);
+	    num_timesteps = ceil( (stop_time - num_timesteps_ref*dt)/dt/ref_factor);
+    } else {
+	    num_timesteps = ceil(stop_time / dt);
+    }
+
     int last_checkpoint_time = 0;
 
     //Write central field evolution in output/Actr_evol_amp
@@ -2092,7 +2113,24 @@ void Spacetime::evolve()
 
     for (int time_step = 0; time_step < num_timesteps; time_step++)
     {
-        double t = start_time + time_step * dt;
+       
+         double t;
+	 double start_time_ref;
+
+	 if (do_t_ref) {
+		 if (time_step < num_timesteps_ref) {
+			t = start_time + time_step * dt;
+		 } else if (time_step > num_timesteps_ref) {
+			t = start_time_ref + (time_step-num_timesteps_ref)*dt;
+		 } else {
+			t = start_time + time_step*dt;
+			start_time_ref = t;
+			dt = ref_factor*dt;
+		 }
+	 } else {
+		 t = start_time + time_step * dt;
+	 }
+
 
         //fill out array until we've reached maximum number of stored slices, then update last element + rotate at end.
         int n = (time_step > max_stored_slices - 2) ? (max_stored_slices - 2) : time_step;
@@ -2133,14 +2171,14 @@ void Spacetime::evolve()
         if (time_step % write_CN_interval == 0) //write time-dependent diagnostics to constraint_norms.dat
         {
             compute_scalar_energies(current_slice_ptr);
-            constraints_file << std::setprecision (10) << start_time + dt * time_step << "   " << Ham_L2  
+            constraints_file << std::setprecision (10) << t << "   " << Ham_L2  
             << "   " << Mom_L2 <<  "   " << slices[n].states2[0].bssn.chi << "   "
             << A_ctr << "   "  << ah_radius << "   " <<  M << "   "  << slice_charge(current_slice_ptr)
             << "   " << dtK_L2 << "   " << omega_approx << "   " << slices[n].states2[0].bssn.alpha <<
             "   " << E_phi << "   " << E_psi << "   " << ricci_4 << endl;
         
 	    actr_evol_file << std::fixed << std::setprecision(10)
-                   << std::setw(20) << start_time + dt * time_step << " "
+                   << std::setw(20) << t << " "
                    << std::setw(20) << A_ctr << " "
                    << std::setw(20) << csf_phi_re << " "
                    << std::setw(20) << csf_phi_im << " "
@@ -2153,13 +2191,13 @@ void Spacetime::evolve()
 	    if (do_1d_output)
  	    {
 		    radii_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
 		    phi_re_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
 		    phi_im_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << start_time + dt * time_step << " "
+			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
         
 		    for (int j=0; j < (int) slices[n].states2.size(); j++)

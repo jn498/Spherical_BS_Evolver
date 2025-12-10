@@ -340,6 +340,11 @@ class Spacetime
         double test_ctr;
 
 	double do_1d_output; //flag to enable/disable 1d output (r, phi_re(r), phi_im(r) for each time slice)
+
+	double do_t_ref; //flag to enable/disable refinement
+	double t_refinement; // time after which to start applying refinemtn
+	double ref_factor; // factor to multiply courant_factor after t_refinement
+
 };
 
 
