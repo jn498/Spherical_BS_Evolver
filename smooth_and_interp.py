@@ -18,6 +18,8 @@ def find_float(filename, search_string):
                     print(f"Error: Couldn't convert remainder '{remainder}' to float.")
                     return None
 
+#change par file name if needed
+par_file_name = "BSParams.par"
 
 #number of gridpoints before and after jump to skip, and threshold value: magnitude of second-derivative-jump must be at least this much to trigger discontinuity finder
 start_gap = 40
@@ -26,10 +28,10 @@ jump_thresh = 5
 skip_smoothing = 1
 
 #number of gridpoints and total radius
-n_gridpoints = int(find_float("BSParams.par", "n_gridpoints = "))
+n_gridpoints = int(find_float(par_file_name, "n_gridpoints = "))
 n_gridpoints_original = n_gridpoints
-R = find_float("BSParams.par", "R = ")
-thinshell_res_fac = int(find_float("BSParams.par", "thinshell_res_fac = "))
+R = find_float(par_file_name, "R = ")
+thinshell_res_fac = int(find_float(par_file_name, "thinshell_res_fac = "))
 
 n_gridpoints = thinshell_res_fac * n_gridpoints - thinshell_res_fac + 1
 

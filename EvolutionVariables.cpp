@@ -1362,6 +1362,44 @@ double Spacetime::ricci_4_ctr() const
         + 2. * (-lap_alpha - d_tK0 + beta0 * d_z_K0) / alpha0;
 }
 
+
+//compute ricci scalar at index j
+double Spacetime::ricci_4_index(int j) const
+{
+    if (current_slice_ptr == nullptr || n_gridpoints <= 0)
+        return 0.0;
+
+    const BSSNSlice& s = *current_slice_ptr;
+
+    const double& chi_curr = s.states2[j].bssn.chi;
+    const double& h_zz_curr = s.states2[j].bssn.h_zz;
+    const double& h_ww_curr = s.states2[j].bssn.h_ww;
+    const double& h_ZZ_curr = h_ZZ[j];
+    const double& h_WW_curr = h_WW[j];
+    const double& K_curr = s.states2[j].bssn.K;
+    const double& A_zz_curr = s.states2[j].bssn.A_zz;
+    const double& A_ww_curr = s.states2[j].bssn.A_ww;
+    const double& alpha_curr = s.states2[j].bssn.alpha;
+    double d_z_K_curr = current_slice_ptr->d_z(v_K, j);
+    const double& beta_curr = s.states2[j].bssn.beta;
+
+    const double K_zz_curr = (A_zz_curr + h_zz_curr * K_curr / (D - 1.)) / chi_curr;
+    const double K_ww_curr = (A_ww_curr + h_ww_curr * K_curr / (D - 1.)) / chi_curr;
+
+    double d_tK_curr = beta_curr * d_z_K_curr - chi_curr * h_ZZ_curr * D_zz_alpha[j] + alpha_curr * h_ZZ_curr * h_ZZ_curr * A_zz_curr * A_zz_curr + alpha_curr * K_curr * K_curr  / (D - 1.)
+                            + (D - 2.) * h_WW_curr * (alpha_curr * A_ww_curr * A_ww_curr / h_ww_curr - chi_curr * D_ww_alpha[j]) + 8. * M_PI * alpha_curr * (S[j] + (D - 3.) * rho[j]) / (D - 1.);
+
+
+    const double ricci_3 = chi_curr * (R_zz[j] * h_ZZ_curr + (D - 2.) * R_ww[j] * h_WW_curr);
+    const double K_ijK_IJ = chi_curr * chi_curr * (K_zz_curr * K_zz_curr * h_ZZ_curr * h_ZZ_curr + (D - 2.) * K_ww_curr * K_ww_curr * h_WW_curr * h_WW_curr);
+    const double lap_alpha = chi_curr * (h_ZZ_curr * D_zz_alpha[j] + (D - 2.) * h_WW_curr * D_ww_alpha[j]);
+
+    return ricci_3 + K_curr * K_curr + K_ijK_IJ
+        + 2. * (-lap_alpha - d_tK_curr + beta_curr * d_z_K_curr) / alpha_curr;
+}
+
+
+
 //computes hamiltonian and momentum constraints and conformal metric determinant
 void Spacetime::compute_diagnostics (BSSNSlice* slice_ptr)
 {
@@ -1485,11 +1523,11 @@ void Spacetime:: write_diagnostics()
 //read additional parameters from BSparams.par
 void Spacetime::read_parameters(bool quiet)
 {
-    std::ifstream params{ "BSParams.par" };
+    std::ifstream params{ par_file_name };
 
     if (!params)
     {
-        std::cerr << "Could not open BSParams.par\n";
+        std::cerr << "Could not open " << par_file_name << "\n";
         abort();
     }
 
@@ -2039,13 +2077,14 @@ void Spacetime::evolve()
                    << std::setw(21) << "phi_im "
                    << std::setw(21) << "ah_radius "
                    << std::setw(21) << "alpha "
-                   << std::setw(21) << "ricci_4 "
+                   << std::setw(21) << "ricci_4_ctr "
                    << std::endl;
 
     // create 1D output files
     std::ofstream radii_file;
     std::ofstream phi_re_file;
     std::ofstream phi_im_file;
+    std::ofstream ricci_4_file;
     if (do_1d_output)
     { 
 	    // radii 
@@ -2092,6 +2131,22 @@ void Spacetime::evolve()
 		    << std::setw(21) << "numb. of points "
 		    << std::setw(21) << "radial value of phi_im(r)= "
 		    << endl;
+	    
+	    // ricci4
+	    std::ostringstream  oss_1d_ricci_4_file_name;
+   	    oss_1d_ricci_4_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/ricci_scalar_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+            std::string ricci_4_file_name = oss_1d_ricci_4_file_name.str();
+            ricci_4_file.open(ricci_4_file_name);
+            if (!ricci_4_file)
+            {
+                std::cerr << "ricci_scalar_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+                exit(1);
+            }
+            ricci_4_file << "#" << std::setw(20) << "time "
+                    << std::setw(21) << "numb. of points "
+                    << std::setw(21) << "radial value of 4d ricci scalar R(r)= "
+                    << endl;
+
     }
 
 
@@ -2199,6 +2254,9 @@ void Spacetime::evolve()
 		    phi_im_file << std::fixed << std::setprecision(16)
 			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
+		    ricci_4_file << std::fixed << std::setprecision(16)
+			    << std::setw(20) << t << " "
+			    << std::setw(20) << slices[n].states2.size() << " ";
         
 		    for (int j=0; j < (int) slices[n].states2.size(); j++)
 		    {
@@ -2208,11 +2266,14 @@ void Spacetime::evolve()
 				<< std::setw(20) << slices[n].states2[j].csf.phi_re << " ";
 			phi_im_file << std::fixed << std::setprecision(16)
 				<< std::setw(20) << slices[n].states2[j].csf.phi_im << " ";
+		        ricci_4_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << ricci_4_index(j) << " ";
 		    }
 		    radii_file << endl;
 		    phi_re_file << endl;
 		    phi_im_file << endl;
-	     }
+	    	    ricci_4_file << endl; 
+	    }
         }
 
 

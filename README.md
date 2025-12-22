@@ -5,10 +5,15 @@ NOTE: for some reason  my .gitignore didn't seem to work. Nothing ending in .dat
 
 ###COMPILE + RUN####
 I include a shell script make_BSEvolver_gcc.sh that should produce the executable BosonStarStability.o in the directory it is run using gcc (the shell script must be run in the same directory as all source files currently).
-The executable needs to run in the same directory as a BSParams.par file (included in repo), else it will abort. Many of these are self-explanatory/same as GRChombo but some I will explain below.
+The executable needs to run in the same directory as a parameter file called par_file_name (default BSParams.par) (included in repo), else it will abort. Many of these are self-explanatory/same as GRChombo but some I will explain below.
+It can be run with up to two parameters to specify par_file_name and the output folder:
+
+./BosonStarStability "par_file_name" "output_folder_name"
+
+if these are not specified, default values are set to "BSParams.par" and "output".
 
 ###OUTPUTS###
-Outputs all end in .dat. The files that are produced (in order of a usual run):
+Outputs all end in .dat. Everything is stored in folder output_folder_name. The files that are produced (in order of a usual run):
 -BSdata.dat: stores field values from original BS construction, in order: r, A, X, phi, t
 
 -isotropic.dat: if "isotropic" is true in params file, spits out isotropic field values; this is messy + probably won't need but can check source code write_isotropic() for order

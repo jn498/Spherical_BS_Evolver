@@ -63,12 +63,12 @@ double BosonStar::ddV( const double A)
 //read parameters in from file BSParams.par. TODO: default values
 void BosonStar::read_parameters(bool quiet)
 {
-    ifstream params{ "BSParams.par" };
+    ifstream params{ par_file_name };
 
     // Print an error and exit if file cannot open
     if (!params)
     {
-        std::cerr << "Could not open BSParams.par\n";
+        std::cerr << "Could not open " << par_file_name << "\n";
         abort();
     }
 

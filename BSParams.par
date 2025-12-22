@@ -30,7 +30,7 @@ stop_time = 5000
 cell_centered = 0
 BS_resolution_factor = 2 #raise BS resolution in ID solver by this factor
 
-do_t_ref = 1  #flag to tell whether to increase time resolution
+do_t_ref = 0  #flag to tell whether to increase time resolution
 t_refinement = 32.6 #time after which to start doing refinement
 ref_factor = 0.05  #refinement factor. After t_ref, courant_factor will change to ref_factor*courant_factor
 
@@ -38,16 +38,16 @@ refinement_points = -1 3200 #after these points, effective resolution will be ha
 
 #Massless real scalar field params: [0.01322275631129742, 0.01322275638580322]
 add_real_field = 1 #whether to add a real SF before evolution
-real_amp = 0.2822313953408753 # 0.2822247700762999
+real_amp = 0.2822313953410128 # 0.2822313953408753 # 0.2822247700762999
 real_sigma = 5.0
 real_center = 0.0
 
 #params for critical threshold studies
 do_ah_search = 1
 critical_study = 0
-hi_guess = 0.4
-lo_guess = 0.005
-critical_eps = 1e-12
+hi_guess = 0.2822314
+lo_guess = 0.2822313
+critical_eps = 1e-15
 sub_min_time = 10 #only count subcriticality after this time
 subcritical_time = 1000 #if no horizon after this amount of time has passed, assume subcritical
 

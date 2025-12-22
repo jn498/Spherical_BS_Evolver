@@ -8,6 +8,9 @@ using namespace std;
 string output_folder_name = "output";
 string time_dep_data_folder_name = "time_dep";
 
+//set parameter file
+string par_file_name = "BSParams.par";
+
 int create_output_folder(string folder_name)
 { 
 	// create output folder, making a backup in output_prev

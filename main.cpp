@@ -19,9 +19,18 @@ void slice_convergence_test (BSSNSlice& sl, BSSNSlice& sm, BSSNSlice& sh);
 void gauss_initialize(BosonStar& boson_star);
 void compute_linear_perturbation(BosonStar& boson_star, double A0, double dA, double n_stars);
 
-int main()
+int main(int argc, char* argv[])
 {
- 
+    if (argc > 1) {
+	 par_file_name = argv[1];
+   	 if (argc > 2) {
+		    output_folder_name = argv[2];
+	 }
+    }
+
+    cout << "Reading from parameter file: " << par_file_name << endl; 
+    cout << "Writing output in folder: " << output_folder_name << endl;
+
     //create output folder
     create_output_folder(output_folder_name);
     // create time_dep data
