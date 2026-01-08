@@ -2073,80 +2073,55 @@ void Spacetime::evolve()
     }
     actr_evol_file << "#" << std::setw(20) << "time "
                    << std::setw(21) << "A_ctr "
-                   << std::setw(21) << "phi_re "
+                   << std::setw(21) << "phi_re (CSF)"
                    << std::setw(21) << "phi_im "
-                   << std::setw(21) << "ah_radius "
+ /*                << std::setw(21) << "Conj. Mom Pi_re "
+                   << std::setw(21) << "Conj. Mom Pi_im "
+                   << std::setw(21) << "psi (RSF) "
+                   << std::setw(21) << "Conj. Mom. Psi "
+ */                << std::setw(21) << "ah_radius "
                    << std::setw(21) << "alpha "
                    << std::setw(21) << "ricci_4_ctr "
+		   << std::setw(21) << "Mass"
+		   << std::setw(21) << "Noether charge"
+		   << std::setw(21) << "CSF Energy"
+		   << std::setw(21) << "RSF Energy"
                    << std::endl;
 
     // create 1D output files
     std::ofstream radii_file;
     std::ofstream phi_re_file;
     std::ofstream phi_im_file;
+    std::ofstream k_phi_re_file;
+    std::ofstream k_phi_im_file;
+    std::ofstream psi_file;
+    std::ofstream k_psi_file;
     std::ofstream ricci_4_file;
     if (do_1d_output)
     { 
 	    // radii 
-	    std::ostringstream  oss_1d_radii_file_name;
-	    oss_1d_radii_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/radii_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
-	    std::string radii_file_name = oss_1d_radii_file_name.str();
-	    radii_file.open(radii_file_name);
-	    if (!radii_file)
-	    {
-		std::cerr << "radii_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
-		exit(1);
-	    }
-	    radii_file << "#" << std::setw(20) << "time "
-		    << std::setw(21) << "numb. of points "
-		    << std::setw(21) << "radial value r= "
-		    << endl;
+	    radii_file = write_1d_header("radii", real_amp);
 
 	    // phi_re
-	    std::ostringstream  oss_1d_phi_re_file_name;
-	    oss_1d_phi_re_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/phi_re_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
-	    std::string phi_re_file_name = oss_1d_phi_re_file_name.str();
-	    phi_re_file.open(phi_re_file_name);
-	    if (!phi_re_file)
-	    {
-		std::cerr << "phi_re_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
-		exit(1);
-	    }
-	    phi_re_file << "#" << std::setw(20) << "time "
-		    << std::setw(21) << "numb. of points "
-		    << std::setw(21) << "radial value of csf phi_re(r)= "
-		    << endl;
+	    phi_re_file = write_1d_header("phi_re", real_amp);
 
-	    // phi_im
-	    std::ostringstream  oss_1d_phi_im_file_name;
-	    oss_1d_phi_im_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/phi_im_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
-	    std::string phi_im_file_name = oss_1d_phi_im_file_name.str();
-	    phi_im_file.open(phi_im_file_name);
-	    if (!phi_im_file)
-	    {
-		std::cerr << "phi_im_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
-		exit(1);
-	    }
-	    phi_im_file << "#" << std::setw(20) << "time "
-		    << std::setw(21) << "numb. of points "
-		    << std::setw(21) << "radial value of phi_im(r)= "
-		    << endl;
-	    
-	    // ricci4
-	    std::ostringstream  oss_1d_ricci_4_file_name;
-   	    oss_1d_ricci_4_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/1d/ricci_scalar_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
-            std::string ricci_4_file_name = oss_1d_ricci_4_file_name.str();
-            ricci_4_file.open(ricci_4_file_name);
-            if (!ricci_4_file)
-            {
-                std::cerr << "ricci_scalar_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
-                exit(1);
-            }
-            ricci_4_file << "#" << std::setw(20) << "time "
-                    << std::setw(21) << "numb. of points "
-                    << std::setw(21) << "radial value of 4d ricci scalar R(r)= "
-                    << endl;
+            // phi_im
+            phi_im_file = write_1d_header("phi_im", real_amp);
 
+	    // k_phi_re
+            k_phi_re_file = write_1d_header("k_phi_re", real_amp);
+
+	    // k_phi_im
+            k_phi_im_file = write_1d_header("k_phi_im", real_amp);
+
+	    // psi
+            psi_file = write_1d_header("psi", real_amp);
+
+	    // k_psi
+            k_psi_file = write_1d_header("k_psi", real_amp);
+
+	    // ricci_4
+            ricci_4_file = write_1d_header("ricci_4", real_amp);
     }
 
 
@@ -2216,7 +2191,23 @@ void Spacetime::evolve()
         double csf_phi_im0 = slices[n].states2[0].csf.phi_im;
         double csf_phi_im1 = slices[n].states2[1].csf.phi_im;
         double csf_phi_im = (cell_centered) ? (csf_phi_im0 - 0.5 * dr * (csf_phi_im1 - csf_phi_im0)) : csf_phi_im0;
+/*
+	double csf_K_phi_re0 = slices[n].states2[0].csf.K_phi_re;
+        double csf_K_phi_re1 = slices[n].states2[1].csf.K_phi_re;
+        double csf_K_phi_re = (cell_centered) ? (csf_K_phi_re0 - 0.5 * dr * (csf_K_phi_re1 - csf_K_phi_re0)) : csf_K_phi_re0;
 
+	double csf_K_phi_im0 = slices[n].states2[0].csf.K_phi_im;
+        double csf_K_phi_im1 = slices[n].states2[1].csf.K_phi_im;
+        double csf_K_phi_im = (cell_centered) ? (csf_K_phi_im0 - 0.5 * dr * (csf_K_phi_im1 - csf_K_phi_im0)) : csf_K_phi_im0;
+
+	double rsf_psi0 = slices[n].states2[0].rsf.psi;
+        double rsf_psi1 = slices[n].states2[1].rsf.psi;
+        double rsf_psi = (cell_centered) ? (rsf_psi0 - 0.5 * dr * (rsf_psi1 - rsf_psi0)) : rsf_psi0;
+
+	double rsf_K_psi0 = slices[n].states2[0].rsf.K_psi;
+        double rsf_K_psi1 = slices[n].states2[1].rsf.K_psi;
+        double rsf_K_psi = (cell_centered) ? (rsf_K_psi0 - 0.5 * dr * (rsf_K_psi1 - rsf_K_psi0)) : rsf_K_psi0;
+*/
 	//ricci scalar
 	double ricci_4 = (critical_study ? ricci_4_ctr():0.0);
 
@@ -2237,9 +2228,17 @@ void Spacetime::evolve()
                    << std::setw(20) << A_ctr << " "
                    << std::setw(20) << csf_phi_re << " "
                    << std::setw(20) << csf_phi_im << " "
-                   << std::setw(20) << ah_radius << " "
+  /*               << std::setw(20) << csf_K_phi_re << " "
+                   << std::setw(20) << csf_K_phi_im << " "
+                   << std::setw(20) << rsf_psi << " "
+                   << std::setw(20) << rsf_K_psi << " "
+  */               << std::setw(20) << ah_radius << " "
                    << std::setw(20) << slices[n].states2[0].bssn.alpha << " "
-                   << std::setw(20) << ricci_4
+                   << std::setw(20) << ricci_4 << " "
+		   << std::setw(20) << M
+		   << std::setw(20) << slice_charge(current_slice_ptr)
+		   << std::setw(20) << E_phi
+		   << std::setw(20) << E_psi
                    << endl;
 
 	    //write 1_D relevant data (not too much...)
@@ -2254,6 +2253,18 @@ void Spacetime::evolve()
 		    phi_im_file << std::fixed << std::setprecision(16)
 			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
+		    k_phi_re_file << std::fixed << std::setprecision(16)
+                            << std::setw(20) << t << " "
+                            << std::setw(20) << slices[n].states2.size() << " ";
+                    k_phi_im_file << std::fixed << std::setprecision(16)
+                            << std::setw(20) << t << " "
+                            << std::setw(20) << slices[n].states2.size() << " ";
+		    psi_file << std::fixed << std::setprecision(16)
+                            << std::setw(20) << t << " "
+                            << std::setw(20) << slices[n].states2.size() << " ";
+                    k_psi_file << std::fixed << std::setprecision(16)
+                            << std::setw(20) << t << " "
+                            << std::setw(20) << slices[n].states2.size() << " ";
 		    ricci_4_file << std::fixed << std::setprecision(16)
 			    << std::setw(20) << t << " "
 			    << std::setw(20) << slices[n].states2.size() << " ";
@@ -2266,12 +2277,24 @@ void Spacetime::evolve()
 				<< std::setw(20) << slices[n].states2[j].csf.phi_re << " ";
 			phi_im_file << std::fixed << std::setprecision(16)
 				<< std::setw(20) << slices[n].states2[j].csf.phi_im << " ";
+			k_phi_re_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].csf.K_phi_re << " ";
+			k_phi_im_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].csf.K_phi_im << " ";
+			psi_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].rsf.psi << " ";
+			k_psi_file << std::fixed << std::setprecision(16)
+				<< std::setw(20) << slices[n].states2[j].rsf.K_psi << " ";
 		        ricci_4_file << std::fixed << std::setprecision(16)
 				<< std::setw(20) << ricci_4_index(j) << " ";
 		    }
 		    radii_file << endl;
 		    phi_re_file << endl;
 		    phi_im_file << endl;
+		    k_phi_re_file << endl;
+		    k_phi_im_file << endl;
+		    psi_file << endl;
+		    k_psi_file << endl;
 	    	    ricci_4_file << endl; 
 	    }
         }
