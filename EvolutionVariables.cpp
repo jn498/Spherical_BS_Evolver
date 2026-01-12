@@ -2088,40 +2088,18 @@ void Spacetime::evolve()
 		   << std::setw(21) << "RSF Energy"
                    << std::endl;
 
-    // create 1D output files
-    std::ofstream radii_file;
-    std::ofstream phi_re_file;
-    std::ofstream phi_im_file;
-    std::ofstream k_phi_re_file;
-    std::ofstream k_phi_im_file;
-    std::ofstream psi_file;
-    std::ofstream k_psi_file;
-    std::ofstream ricci_4_file;
+
+    // set 1d variables
+    int n_output_1d = 10;
+    std::ofstream output_1d_files[n_output_1d];
+    string output_1d_names[n_output_1d] = {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz"};
     if (do_1d_output)
     { 
-	    // radii 
-	    radii_file = write_1d_header("radii", real_amp);
-
-	    // phi_re
-	    phi_re_file = write_1d_header("phi_re", real_amp);
-
-            // phi_im
-            phi_im_file = write_1d_header("phi_im", real_amp);
-
-	    // k_phi_re
-            k_phi_re_file = write_1d_header("k_phi_re", real_amp);
-
-	    // k_phi_im
-            k_phi_im_file = write_1d_header("k_phi_im", real_amp);
-
-	    // psi
-            psi_file = write_1d_header("psi", real_amp);
-
-	    // k_psi
-            k_psi_file = write_1d_header("k_psi", real_amp);
-
-	    // ricci_4
-            ricci_4_file = write_1d_header("ricci_4", real_amp);
+	    for (int ind=0; ind<n_output_1d; ind++)
+	    {
+		   // create output file for each variable
+		   output_1d_files[ind] = write_1d_header( output_1d_names[ind], real_amp );
+	    } 
     }
 
 
@@ -2244,58 +2222,46 @@ void Spacetime::evolve()
 	    //write 1_D relevant data (not too much...)
 	    if (do_1d_output)
  	    {
-		    radii_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << t << " "
-			    << std::setw(20) << slices[n].states2.size() << " ";
-		    phi_re_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << t << " "
-			    << std::setw(20) << slices[n].states2.size() << " ";
-		    phi_im_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << t << " "
-			    << std::setw(20) << slices[n].states2.size() << " ";
-		    k_phi_re_file << std::fixed << std::setprecision(16)
+		    // write time for each file
+		    for (int ind=0; ind<n_output_1d; ind++)
+		    {
+			    output_1d_files[ind] << std::fixed << std::setprecision(16)
                             << std::setw(20) << t << " "
                             << std::setw(20) << slices[n].states2.size() << " ";
-                    k_phi_im_file << std::fixed << std::setprecision(16)
-                            << std::setw(20) << t << " "
-                            << std::setw(20) << slices[n].states2.size() << " ";
-		    psi_file << std::fixed << std::setprecision(16)
-                            << std::setw(20) << t << " "
-                            << std::setw(20) << slices[n].states2.size() << " ";
-                    k_psi_file << std::fixed << std::setprecision(16)
-                            << std::setw(20) << t << " "
-                            << std::setw(20) << slices[n].states2.size() << " ";
-		    ricci_4_file << std::fixed << std::setprecision(16)
-			    << std::setw(20) << t << " "
-			    << std::setw(20) << slices[n].states2.size() << " ";
-        
+		    }
+			
+		    // write radial data
 		    for (int j=0; j < (int) slices[n].states2.size(); j++)
 		    {
-			radii_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << (j) * dr << " ";
-			phi_re_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].csf.phi_re << " ";
-			phi_im_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].csf.phi_im << " ";
-			k_phi_re_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].csf.K_phi_re << " ";
-			k_phi_im_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].csf.K_phi_im << " ";
-			psi_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].rsf.psi << " ";
-			k_psi_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << slices[n].states2[j].rsf.K_psi << " ";
-		        ricci_4_file << std::fixed << std::setprecision(16)
-				<< std::setw(20) << ricci_4_index(j) << " ";
+			    // data to save
+			    // {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz"}
+			    double output_1d_data[n_output_1d] = { 
+				   (j)*dr, 
+				   slices[n].states2[j].csf.phi_re, 
+				   slices[n].states2[j].csf.phi_im, 
+				   slices[n].states2[j].csf.K_phi_re, 
+				   slices[n].states2[j].csf.K_phi_im,
+				   slices[n].states2[j].rsf.psi,
+				   slices[n].states2[j].rsf.K_psi,
+				   ricci_4_index(j),
+				   slices[n].states2[j].bssn.alpha,
+				   slices[n].states2[j].bssn.h_zz/slices[n].states2[j].bssn.chi
+			    };
+			    // save data
+			    for (int ind=0; ind < n_output_1d; ind++)
+			    {
+				output_1d_files[ind] << std::fixed << std::setprecision(16)
+				<< std::setw(20) << output_1d_data[ind] << " ";
+			    }
+
 		    }
-		    radii_file << endl;
-		    phi_re_file << endl;
-		    phi_im_file << endl;
-		    k_phi_re_file << endl;
-		    k_phi_im_file << endl;
-		    psi_file << endl;
-		    k_psi_file << endl;
-	    	    ricci_4_file << endl; 
+
+		    // end of line before new time
+		    for (int ind=0; ind < n_output_1d; ind++) 
+		    {
+		    	   output_1d_files[ind] << endl;
+		    }
+			
 	    }
         }
 
