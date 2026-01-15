@@ -297,9 +297,26 @@ void BosonStar::write_field(string filename)
         exit(1);
     }
 
+    // Do a header
+    data_file << "# w = " << std::setprecision(19) << omega << endl; 
+    data_file << "#" << std::setw(20) << "r "
+                   << std::setw(21) << "A "
+                   << std::setw(21) << "X "
+                   << std::setw(21) << "Phi "
+                   << std::setw(21) << "eta "
+                   << std::setw(21) << "m "
+                   << std::endl;
+
     for (int j = 0; j < n_gridpoints; j++)
     {
-        data_file << std::setprecision (10) << radius_array[j] << "   " << state[j].A << "    " << state[j].X << "    " << state[j].phi << "    " << state[j].eta << "    " << m(j) << endl;
+        data_file << std::fixed << std::setprecision (10) 
+		<< std::setw(20) << radius_array[j] << " " 
+		<< std::setw(20) << state[j].A << " " 
+		<< std::setw(20) << state[j].X << " " 
+		<< std::setw(20) << state[j].phi << " " 
+		<< std::setw(20) << state[j].eta << " " 
+		<< std::setw(20) << m(j) << " "
+		<< endl;
     }
 
 

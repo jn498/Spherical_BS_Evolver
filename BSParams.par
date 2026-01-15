@@ -9,7 +9,7 @@ eigen = 0 #0 for ground state BS
 alpha_central = 0.5 #starting central lapse, will be rescaled
 A_central = 0.035
 frequency_guess = 1.8
-freq_epsilon = 1e-19
+freq_epsilon = 1e-16
 isotropic = 1 
 r_match_fac = 0.85 #cutoff radius for BS construction
 
@@ -38,7 +38,7 @@ refinement_points = -1 3200 #after these points, effective resolution will be ha
 
 #Massless real scalar field params: [0.01322275631129742, 0.01322275638580322]
 add_real_field = 1 #whether to add a real SF before evolution
-real_amp =  0.085 # 0.2553440734613389 #0.0967711224335985 # 0.1557622274551681 #0.09677112243359851
+real_amp = 0.1557622274551681 
 real_sigma = 5.0
 real_center = 0.0
 

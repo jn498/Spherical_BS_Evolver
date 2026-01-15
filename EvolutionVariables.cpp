@@ -1268,6 +1268,7 @@ double Spacetime::slice_charge(BSSNSlice* slice_ptr)
     return charge;
 }
 
+
 // Compute energies E_phi (complex scalar) and E_psi (real scalar) by integrating
 // the corresponding rho contributions over the slice using the spherical volume measure.
 void Spacetime::compute_scalar_energies(BSSNSlice* slice_ptr)
@@ -2063,29 +2064,31 @@ void Spacetime::evolve()
 
     //Write central field evolution in output/Actr_evol_amp
     std::ostringstream  oss_actr_evol_file_name;
-    oss_actr_evol_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/Actr_evol_" << std::fixed << std::setprecision(16) << real_amp << ".dat";
+    oss_actr_evol_file_name << output_folder_name << "/" << time_dep_data_folder_name <<  "/evol_variables_p" << std::fixed << std::setprecision(16) << real_amp << ".dat";
     std::string actr_evol_file_name = oss_actr_evol_file_name.str();
     std::ofstream actr_evol_file{actr_evol_file_name};
     if (!actr_evol_file)
     {
-        std::cerr << "Actr_evol_" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
+        std::cerr << "evol_variables_p" << std::setprecision(16) << real_amp << ".dat could not be opened for writing!\n";
         exit(1);
     }
     actr_evol_file << "#" << std::setw(20) << "time "
                    << std::setw(21) << "A_ctr "
-                   << std::setw(21) << "phi_re (CSF)"
-                   << std::setw(21) << "phi_im "
- /*                << std::setw(21) << "Conj. Mom Pi_re "
-                   << std::setw(21) << "Conj. Mom Pi_im "
-                   << std::setw(21) << "psi (RSF) "
-                   << std::setw(21) << "Conj. Mom. Psi "
- */                << std::setw(21) << "ah_radius "
-                   << std::setw(21) << "alpha "
+                   << std::setw(21) << "phi_re_ctr "
+                   << std::setw(21) << "phi_im_ctr "
+                   << std::setw(21) << "K_phi_re_ctr "
+                   << std::setw(21) << "K_phi_im_ctr "
+                   << std::setw(21) << "psi_ctr"
+                   << std::setw(21) << "K_psi_ctr "
+                   << std::setw(21) << "ah_radius "
                    << std::setw(21) << "ricci_4_ctr "
-		   << std::setw(21) << "Mass"
-		   << std::setw(21) << "Noether charge"
-		   << std::setw(21) << "CSF Energy"
-		   << std::setw(21) << "RSF Energy"
+		   << std::setw(21) << "ADM_Mass"
+		   << std::setw(21) << "Noether_charge"
+		   << std::setw(21) << "CSF_energy"
+		   << std::setw(21) << "RSF_energy"
+                   << std::setw(21) << "alpha "
+		   << std::setw(21) << "chi "
+		   << std::setw(21) << "hzz "
                    << std::endl;
 
 
@@ -2169,7 +2172,7 @@ void Spacetime::evolve()
         double csf_phi_im0 = slices[n].states2[0].csf.phi_im;
         double csf_phi_im1 = slices[n].states2[1].csf.phi_im;
         double csf_phi_im = (cell_centered) ? (csf_phi_im0 - 0.5 * dr * (csf_phi_im1 - csf_phi_im0)) : csf_phi_im0;
-/*
+
 	double csf_K_phi_re0 = slices[n].states2[0].csf.K_phi_re;
         double csf_K_phi_re1 = slices[n].states2[1].csf.K_phi_re;
         double csf_K_phi_re = (cell_centered) ? (csf_K_phi_re0 - 0.5 * dr * (csf_K_phi_re1 - csf_K_phi_re0)) : csf_K_phi_re0;
@@ -2185,7 +2188,7 @@ void Spacetime::evolve()
 	double rsf_K_psi0 = slices[n].states2[0].rsf.K_psi;
         double rsf_K_psi1 = slices[n].states2[1].rsf.K_psi;
         double rsf_K_psi = (cell_centered) ? (rsf_K_psi0 - 0.5 * dr * (rsf_K_psi1 - rsf_K_psi0)) : rsf_K_psi0;
-*/
+
 	//ricci scalar
 	double ricci_4 = (critical_study ? ricci_4_ctr():0.0);
 
@@ -2206,17 +2209,19 @@ void Spacetime::evolve()
                    << std::setw(20) << A_ctr << " "
                    << std::setw(20) << csf_phi_re << " "
                    << std::setw(20) << csf_phi_im << " "
-  /*               << std::setw(20) << csf_K_phi_re << " "
+                   << std::setw(20) << csf_K_phi_re << " "
                    << std::setw(20) << csf_K_phi_im << " "
                    << std::setw(20) << rsf_psi << " "
                    << std::setw(20) << rsf_K_psi << " "
-  */               << std::setw(20) << ah_radius << " "
-                   << std::setw(20) << slices[n].states2[0].bssn.alpha << " "
+                   << std::setw(20) << ah_radius << " "
                    << std::setw(20) << ricci_4 << " "
-		   << std::setw(20) << M
-		   << std::setw(20) << slice_charge(current_slice_ptr)
-		   << std::setw(20) << E_phi
-		   << std::setw(20) << E_psi
+		   << std::setw(20) << M << " "
+		   << std::setw(20) << slice_charge(current_slice_ptr) << " " 
+		   << std::setw(20) << E_phi << " "
+		   << std::setw(20) << E_psi << " "
+		   << std::setw(20) << slices[n].states2[0].bssn.chi << " "
+                   << std::setw(20) << slices[n].states2[0].bssn.alpha << " "
+		   << std::setw(20) << slices[n].states2[0].bssn.h_zz << " " 
                    << endl;
 
 	    //write 1_D relevant data (not too much...)
