@@ -341,7 +341,9 @@ class Spacetime
         double test_ctr;
 
 	double do_1d_output; //flag to enable/disable 1d output (r, phi_re(r), phi_im(r) for each time slice)
-
+	int mult_1d_output; // variable to reduce size of 1d output. Stores an integer value mult, such that 1d variables will be output every mult points.
+	int max_ind_1d; // max number of points  to output 1d variables
+			
 	double do_t_ref; //flag to enable/disable refinement
 	double t_refinement; // time after which to start applying refinemtn
 	double ref_factor; // factor to multiply courant_factor after t_refinement

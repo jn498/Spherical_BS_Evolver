@@ -7,9 +7,9 @@ G = 1.0
 sigma = 0.2
 eigen = 0 #0 for ground state BS
 alpha_central = 0.5 #starting central lapse, will be rescaled
-A_central = 0.035
+A_central = 0.04
 frequency_guess = 1.8
-freq_epsilon = 1e-16
+freq_epsilon = 1e-19
 isotropic = 1 
 r_match_fac = 0.85 #cutoff radius for BS construction
 
@@ -23,30 +23,30 @@ gaussian_start = 0
 enforced_freq = 0.9
 
 #grid params
-R = 30
-n_gridpoints = 450
+R = 200
+n_gridpoints = 3000
 courant_factor = 0.25
-stop_time = 5000
+stop_time = 500
 cell_centered = 0
 BS_resolution_factor = 2 #raise BS resolution in ID solver by this factor
 
 do_t_ref = 0  #flag to tell whether to increase time resolution
-t_refinement = 28 #time after which to start doing refinement
+t_refinement = 47 #time after which to start doing refinement
 ref_factor = 0.05  #refinement factor. After t_ref, courant_factor will change to ref_factor*courant_factor
 
 refinement_points = -1 3200 #after these points, effective resolution will be halved. Set first value as 0 or negative for no refinement
 
 #Massless real scalar field params: [0.01322275631129742, 0.01322275638580322]
 add_real_field = 1 #whether to add a real SF before evolution
-real_amp = 0.1557622274551681 
+real_amp = 0.2155646707499729  #0.09664980421742253 
 real_sigma = 5.0
 real_center = 0.0
 
 #params for critical threshold studies
 do_ah_search = 1
-critical_study = 0
-hi_guess = 0.2553441524505615
-lo_guess = 0.2553439855575562
+critical_study = 1
+hi_guess = 0.5 #0.0967711224335866
+lo_guess = 0.01 #0.09677112243358649
 critical_eps = 1e-15
 sub_min_time = 10 #only count subcriticality after this time
 subcritical_time = 1000 #if no horizon after this amount of time has passed, assume subcritical
@@ -92,7 +92,9 @@ cutoff_frac = 0.75
 
 
 # toggle 1d output for each time slice (R, Phi_re, Phi_im)
-do_1d_output = 1
+do_1d_output = 0
+do_1d_every = 1
+max_1d_o
 
 #Linear Perturbation params
 pert_only = 0 #toggles computing linear perturbation (1) / dynamical evolution (0)

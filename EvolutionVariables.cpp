@@ -579,7 +579,6 @@ void BSSNSlice::read_BS_data (BosonStar& boson_star, int BS_resolution_factor, b
         }
 
     states2[j].csf.K_phi_im = - boson_star.omega * states2[j].csf.phi_re / (2. * states2[j].bssn.alpha) + pert_correction;
-
         if (use_CCZ4)
             theta[j] = 0.;
     }
@@ -1581,6 +1580,8 @@ void Spacetime::read_parameters(bool quiet)
         fill_parameter(current_line, "subcritical_time = ", subcritical_time, quiet);
         fill_parameter(current_line, "do_ah_search = ", do_ah_search, quiet);
         fill_parameter(current_line, "do_1d_output = ", do_1d_output, quiet);
+        fill_parameter(current_line, "do_1d_every = ", mult_1d_output, quiet);
+        fill_parameter(current_line, "max_1d_points = ", max_ind_1d, quiet);
         fill_parameter(current_line, "do_t_ref = ", do_t_ref, quiet);
         fill_parameter(current_line, "t_refinement = ", t_refinement, quiet);
         fill_parameter(current_line, "ref_factor = ", ref_factor, quiet);
@@ -2093,9 +2094,9 @@ void Spacetime::evolve()
 
 
     // set 1d variables
-    int n_output_1d = 10;
+    int n_output_1d = 13;
     std::ofstream output_1d_files[n_output_1d];
-    string output_1d_names[n_output_1d] = {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz"};
+    string output_1d_names[n_output_1d] = {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz", "csf_rho", "rsf_rho", "chi"};
     if (do_1d_output)
     { 
 	    for (int ind=0; ind<n_output_1d; ind++)
@@ -2104,6 +2105,7 @@ void Spacetime::evolve()
 		   output_1d_files[ind] = write_1d_header( output_1d_names[ind], real_amp );
 	    } 
     }
+
 
 
     //write constraint norms at each timestep to file
@@ -2236,10 +2238,33 @@ void Spacetime::evolve()
 		    }
 			
 		    // write radial data
-		    for (int j=0; j < (int) slices[n].states2.size(); j++)
+		    if (max_ind_1d == 0) {
+			    max_ind_1d = (int) (slices[n].states2.size()/mult_1d_output);
+		    }
+		    for (int ind=0; ind < max_ind_1d; ind++)
 		    {
+			    // store 1d output only every few points... otherwise we get REALLY big files
+			    int j = mult_1d_output*ind;
+			
+			    // compute energy densities
+
+	            	    const CSF csf = slices[n].states2[j].csf;
+        	    	    const CSF d_z_csf{slices[n].d_z(v_phi_re, j), slices[n].d_z(v_phi_im, j), 0.0, 0.0};
+            		    const CSF d_zz_csf{0.0, 0.0, 0.0, 0.0};
+            		    const double rho_phi = csf_model.rho(csf, slices[n].states2[j].bssn, d_z_csf, d_zz_csf);
+			    
+		            
+			   double rho_psi = 0.0;	    
+		           if (add_real_field)
+		           {
+       		     		const RSF rsf = slices[n].states2[j].rsf;
+ 	        		const RSF d_z_rsf{slices[n].d_z(v_psi, j), slices[n].d_z(v_K_psi, j)};
+   	            		const RSF d_zz_rsf{0.0, 0.0};
+        	    		rho_psi = rsf_model.rho(rsf, slices[n].states2[j].bssn, d_z_rsf, d_zz_rsf);
+			   }
+				 
 			    // data to save
-			    // {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz"}
+			    // {"radii", "phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz", "csf_rho", "rsf_rho", "chi"}
 			    double output_1d_data[n_output_1d] = { 
 				   (j)*dr, 
 				   slices[n].states2[j].csf.phi_re, 
@@ -2250,7 +2275,10 @@ void Spacetime::evolve()
 				   slices[n].states2[j].rsf.K_psi,
 				   ricci_4_index(j),
 				   slices[n].states2[j].bssn.alpha,
-				   slices[n].states2[j].bssn.h_zz/slices[n].states2[j].bssn.chi
+				   slices[n].states2[j].bssn.h_zz/slices[n].states2[j].bssn.chi,
+				   rho_phi,
+				   rho_psi,
+				   slices[n].states2[j].bssn.chi,
 			    };
 			    // save data
 			    for (int ind=0; ind < n_output_1d; ind++)

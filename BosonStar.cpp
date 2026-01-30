@@ -298,7 +298,9 @@ void BosonStar::write_field(string filename)
     }
 
     // Do a header
-    data_file << "# w = " << std::setprecision(19) << omega << endl; 
+    data_file << "# w = " << std::setprecision(19) << omega << endl;
+    data_file << "# M = " << std::setprecision(10) << M << endl;
+    data_file << "# Q = " << std::setprecision(10) << noether_charge << endl; 
     data_file << "#" << std::setw(20) << "r "
                    << std::setw(21) << "A "
                    << std::setw(21) << "X "
