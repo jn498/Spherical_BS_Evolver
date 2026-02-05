@@ -132,7 +132,6 @@ class Spacetime
 	double ricci_4_index(int j) const; // Compute the 4D Ricci scalar at a grid point with index j on the current slice
 
         bool critical_study; // whether to perform critical study analysis (bisection etc)
-        bool critical_criterion_actr_decrease; // whether to determine subcriticality by decrease of central amplitude (1) or  by time criterion only (0)
 	int critical_state; // to be tracked by critical study handler: 0 for subcritical, 1 for supercritical
         double critical_eps; // tolerance for critical parameter
         double hi_guess;

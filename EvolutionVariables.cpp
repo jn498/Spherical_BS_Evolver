@@ -1571,7 +1571,6 @@ void Spacetime::read_parameters(bool quiet)
         fill_parameter(current_line, "real_sigma = ", real_sigma, quiet);
         fill_parameter(current_line, "real_center = ", real_center, quiet);
         fill_parameter(current_line, "critical_study = ", critical_study, quiet);
-        fill_parameter(current_line, "critical_criterion_actr_decrease = ", critical_criterion_actr_decrease, quiet);
         fill_parameter(current_line, "critical_state = ", critical_state, quiet);
         fill_parameter(current_line, "critical_eps = ", critical_eps, quiet);
         fill_parameter(current_line, "lapse_thresh = ", lapse_thresh, quiet);
@@ -2393,7 +2392,7 @@ void Spacetime::evolve()
             break;
         }
         //wait some time to avoid initial transients, then use net central amplitude decrease as subcritical indicator
-        if (critical_study && critical_criterion_actr_decrease && A_ctr < A0 && t > sub_min_time) 
+        if (critical_study && A_ctr < A0 && t > sub_min_time) 
         {
             cout << "Subcritical at time " << t << endl;
             critical_state = 0;
