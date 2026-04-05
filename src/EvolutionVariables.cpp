@@ -1636,6 +1636,7 @@ void Spacetime::read_parameters(bool quiet)
         fill_param_array(current_line, "refinement_points = ", refinement_points, quiet);
 
         // add 1d output parameters
+        fill_parameter(current_line, "output_std_every = ", output_std_every, quiet);
         fill_param_array(current_line, "output_1d = ", output_1d, quiet);
         fill_parameter(current_line, "output_1d_every = ", output_1d_every, quiet);
     }
@@ -2473,7 +2474,7 @@ void Spacetime::evolve()
         if (time_step >= max_stored_slices - 2)
             rotate(slices.begin(), slices.begin() + 1, slices.end());
 
-        if ((time_step + 1) % 10 == 0 && !run_quietly) cout << "Time step " << time_step + 1 << " complete! t = " << t << endl;
+        if ((time_step + 1) % output_std_every == 0 && !run_quietly) cout << "Time step " << time_step + 1 << " complete! t = " << t << endl;
 
         if (isnan(slices[n + 1].states2[0].bssn.chi))
         {

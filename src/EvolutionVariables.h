@@ -358,6 +358,7 @@ class Spacetime
 
         double test_ctr;
 
+        int output_std_every; // do standard output every 
         int output_1d_every; // do 1d output every 
         std::vector<string> output_1d; // variables to do 1d output over
 
