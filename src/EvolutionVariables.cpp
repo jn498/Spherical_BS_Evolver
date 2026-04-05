@@ -2047,7 +2047,6 @@ void Spacetime::initialize(BosonStar& boson_star, bool skip_read)
     dr = R / (n_gridpoints - 1.0);
     dt = courant_factor * dr;
     int num_timesteps = ceil(stop_time / dt);
-    cout << num_timesteps;
 
     slices.resize(std::min(num_timesteps + 1, max_stored_slices));
     slices[0].active_points = active_points;
@@ -2177,22 +2176,23 @@ void Spacetime::evolve()
 
     // set 1d variables
     int n_output_1d = output_1d.size();
+    vector<string> output_1d_var = output_1d; // make a copy we can modify
     string output_1d_names[13] = {"phi_re", "phi_im", "k_phi_re", "k_phi_im", "psi", "k_psi", "ricci_4", "alpha", "gzz", "hzz", "csf_rho", "rsf_rho", "chi"};
     // first delete all non-valid variable names
     if (n_output_1d > 0)
     { 
         if (n_output_1d > 13) {
-            std::cerr << "Too many variables requested in output_1d. Max is 13. Exiting.\n";
-            exit(1);
+            std::cerr << "Too many variables requested in output_1d. Max is 13. Cancelling 1d output.\n";
+            n_output_1d = 0;
         }
 	    for (int ind=0; ind<n_output_1d; ind++)
 	    {
             // check if variable name is valid
-            if (std::find(std::begin(output_1d_names), std::end(output_1d_names), output_1d[ind]) == std::end(output_1d_names))
+            if (std::find(std::begin(output_1d_names), std::end(output_1d_names), output_1d_var[ind]) == std::end(output_1d_names))
             {   
                 // remove from list
-                std::cerr << "Invalid variable name in output_1d: " << output_1d[ind] << "\n";
-                output_1d.erase(std::remove(output_1d.begin(), output_1d.end(), output_1d[ind]), output_1d.end());
+                std::cerr << "Invalid variable name in output_1d: " << output_1d_var[ind] << "\n";
+                output_1d_var.erase(std::remove(output_1d_var.begin(), output_1d_var.end(), output_1d_var[ind]), output_1d_var.end());
                 n_output_1d--;
                 ind--;
             } 
@@ -2200,13 +2200,12 @@ void Spacetime::evolve()
     }
 
     // now add the axis radius and initialise files
-    n_output_1d++;
-    std::ofstream output_1d_files[n_output_1d];
-    output_1d.push_back("radii"); // add radii as last variable for axis
-    if (n_output_1d > 1) {
-        for (int ind=0; ind<n_output_1d; ind++) {
+    std::ofstream output_1d_files[n_output_1d+1]; // +1 for radii
+    if (n_output_1d > 0) {
+        output_1d_var.push_back("radii"); // add radii as last variable for axis
+        for (int ind=0; ind<n_output_1d+1; ind++) {
             // create output file for each variable
-            output_1d_files[ind] = write_1d_header( output_1d[ind], real_amp );
+            output_1d_files[ind] = write_1d_header( output_1d_var[ind], real_amp );
         }
     }
   
@@ -2340,10 +2339,10 @@ void Spacetime::evolve()
             
 
             //write 1_D relevant data
-            if (n_output_1d > 1 && time_step % output_1d_every == 0) 
+            if (n_output_1d > 0 && time_step % output_1d_every == 0) 
             {
                 // iterate through files
-                for (int var_ind=0; var_ind<n_output_1d; var_ind++)
+                for (int var_ind=0; var_ind<n_output_1d+1; var_ind++)
                 {
                     // write time
                     output_1d_files[var_ind] << std::fixed << std::setprecision(10) 
@@ -2353,34 +2352,34 @@ void Spacetime::evolve()
                     {
                         // get corresponding value
                         double val;
-                        if (output_1d[var_ind] == "radii") {
+                        if (output_1d_var[var_ind] == "radii") {
                             val = (r_ind + grid_offset) * dr;
-                        } else if (output_1d[var_ind] == "phi_re") {
+                        } else if (output_1d_var[var_ind] == "phi_re") {
                             val = slices[n].states2[r_ind].csf.phi_re;
-                        } else if (output_1d[var_ind] == "phi_im") {
+                        } else if (output_1d_var[var_ind] == "phi_im") {
                             val = slices[n].states2[r_ind].csf.phi_im;
-                        } else if (output_1d[var_ind] == "k_phi_re") {
+                        } else if (output_1d_var[var_ind] == "k_phi_re") {
                             val = slices[n].states2[r_ind].csf.K_phi_re;
-                        } else if (output_1d[var_ind] == "k_phi_im") {
+                        } else if (output_1d_var[var_ind] == "k_phi_im") {
                             val = slices[n].states2[r_ind].csf.K_phi_im;
-                        } else if (output_1d[var_ind] == "psi") {
+                        } else if (output_1d_var[var_ind] == "psi") {
                             val = slices[n].states2[r_ind].rsf.psi;
-                        } else if (output_1d[var_ind] == "k_psi") {
+                        } else if (output_1d_var[var_ind] == "k_psi") {
                             val = slices[n].states2[r_ind].rsf.K_psi;
-                        } else if (output_1d[var_ind] == "ricci_4") {
+                        } else if (output_1d_var[var_ind] == "ricci_4") {
                             val = ricci_4_val(r_ind);
-                        } else if (output_1d[var_ind] == "alpha") {
+                        } else if (output_1d_var[var_ind] == "alpha") {
                             val = slices[n].states2[r_ind].bssn.alpha;
-                        } else if (output_1d[var_ind] == "gzz") {
+                        } else if (output_1d_var[var_ind] == "gzz") {
                             val = slices[n].states2[r_ind].bssn.h_zz/slices[n].states2[r_ind].bssn.chi;
-                        } else if (output_1d[var_ind] == "hzz") {
+                        } else if (output_1d_var[var_ind] == "hzz") {
                             val = slices[n].states2[r_ind].bssn.h_zz;
-                        } else if (output_1d[var_ind] == "csf_rho") {
+                        } else if (output_1d_var[var_ind] == "csf_rho") {
                             const CSF csf = slices[n].states2[r_ind].csf;
                             const CSF d_z_csf{slices[n].d_z(v_phi_re, r_ind), slices[n].d_z(v_phi_im, r_ind), 0.0, 0.0};
                             const CSF d_zz_csf{0.0, 0.0, 0.0, 0.0};
                             val = csf_model.rho(csf, slices[n].states2[r_ind].bssn, d_z_csf, d_zz_csf);
-                        } else if (output_1d[var_ind] == "rsf_rho") {
+                        } else if (output_1d_var[var_ind] == "rsf_rho") {
                             val = 0.0;	    
                             if (add_real_field) {
                                 const RSF rsf = slices[n].states2[r_ind].rsf;
@@ -2388,10 +2387,10 @@ void Spacetime::evolve()
                                 const RSF d_zz_rsf{0.0, 0.0};
                                 val = rsf_model.rho(rsf, slices[n].states2[r_ind].bssn, d_z_rsf, d_zz_rsf);
                             }
-                        } else if (output_1d[var_ind] == "chi") {
+                        } else if (output_1d_var[var_ind] == "chi") {
                             val = slices[n].states2[r_ind].bssn.chi;
                         } else {
-                            cerr << "ERROR: unrecognized variable name in output_1d: " << output_1d[var_ind] << endl;
+                            cerr << "ERROR: unrecognized variable name in output_1d: " << output_1d_var[var_ind] << endl;
                         }
 
                         output_1d_files[var_ind] << std::fixed << std::setprecision(10) 
